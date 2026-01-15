@@ -24,7 +24,7 @@ This script is designed to work seamlessly with the **Viegli AI Reporting Pipeli
 
 ```
 (function (event, context, callback) {
-  const scriptUrl = "https://portal.demo-ai.co.uk/assets/mitel_reporting.js";
+  const scriptUrl = "https://garyk2015.github.io/mitel-workflow-studio/mitel_reporting.js";
   const xhr = new XMLHttpRequest();
   xhr.open("GET", scriptUrl, false);
   xhr.send();
