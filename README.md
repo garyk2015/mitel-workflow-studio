@@ -13,31 +13,14 @@ This script is designed to work seamlessly with the **Viegli AI Reporting Pipeli
 - 🧩 **Intelligent serialization** — skips deep nested objects and replaces them with compact summaries.
 - 🧱 **UUID filtering** — ignores workflow node IDs (avoiding bloated JSON).
 - 🪶 **Blank skipping** — removes empty and null values for clean payloads.
-- 🌍 **CDN-friendly** — can be hosted externally and loaded dynamically via HTTPS.
 
 ---
 
 ## 🧠 Usage (Inside WFS)
 
 1. Add a **JavaScript** activity to your flow.
-2. Paste this snippet:
-
-```
-(function (event, context, callback) {
-  const scriptUrl = "https://garyk2015.github.io/mitel-workflow-studio/mitel_reporting.js";
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET", scriptUrl, false);
-  xhr.send();
-
-  if (xhr.status === 200) {
-    eval(xhr.responseText);
-    buildReportingPayload(event, context, callback);
-  } else {
-    callback(false, "Failed to load reporting script: " + xhr.status);
-  }
-})(event, context, callback);
-```
-3. If your node ID is e.g. JavaScript1 then you can for example use a HTTP request node and set its BODY to simply {{JavaScript1.Data.PAYLOAD}} to send the data to a database.
+2. Paste the mitel_reprting.js snippet into a Javascript action in the Workflow Studio editor
+3. If your action ID is e.g. JavaScript1 then you can for example use a HTTP request node and set its BODY to simply {{JavaScript1.Data.PAYLOAD}} to send the data to a database.
 
 
 
