@@ -1,56 +1,56 @@
-// mitel_reporting.js
-(function (global) {
-  function buildReportingPayload(event, context, callback) {
+(function (event, context, callback) {
     try {
-      const excludedPrefixes = ["System", "JavaScript", "Greeting", "contextKeys"];
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        // Define exclusions
+        const excludedPrefixes = ["System", "JavaScript", "Greeting", "contextKeys"];
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-      const shouldExclude = key =>
-        excludedPrefixes.some(prefix => key.startsWith(prefix)) ||
-        uuidRegex.test(key) ||
-        key.toLowerCase().includes("script");
+        const shouldExclude = key =>
+            excludedPrefixes.some(prefix => key.startsWith(prefix)) ||
+            uuidRegex.test(key) ||
+            key.toLowerCase().includes("script");
 
-      const eventKeys = [];
+        const eventKeys = [];
 
-      for (let k in event) {
-        if (!event.hasOwnProperty(k) || shouldExclude(k)) continue;
-        let val = event[k];
-        if (val === null || val === undefined || val === "") continue;
+        for (let k in event) {
+            if (!event.hasOwnProperty(k) || shouldExclude(k)) continue;
 
-        if (typeof val === "object") {
-          try {
-            const keys = Object.keys(val);
-            if (keys.length === 0) continue;
-            const sub = {};
-            for (const key of keys) {
-              const v = val[key];
-              if (v !== null && v !== undefined && v !== "") {
-                sub[key] = typeof v === "object" ? "[object]" : v;
-              }
+            let val = event[k];
+
+            // Skip blanks/nulls/undefined
+            if (val === null || val === undefined || val === "") continue;
+
+            if (typeof val === "object") {
+                try {
+                    // Summarize safely (avoid deep recursion)
+                    const keys = Object.keys(val);
+                    if (keys.length === 0) continue;
+                    const sub = {};
+                    for (const key of keys) {
+                        const v = val[key];
+                        if (v !== null && v !== undefined && v !== "") {
+                            sub[key] = typeof v === "object" ? "[object]" : v;
+                        }
+                    }
+                    val = JSON.stringify(sub);
+                } catch {
+                    val = "[object]";
+                }
+            } else if (typeof val === "string") {
+                val = val.replace(/"/g, '\\"');
             }
-            val = JSON.stringify(sub);
-          } catch {
-            val = "[object]";
-          }
-        } else if (typeof val === "string") {
-          val = val.replace(/"/g, '\\"');
+
+            eventKeys.push({ key: k, value: val });
         }
 
-        eventKeys.push({ key: k, value: val });
-      }
+        const payload = {
+            timestamp: new Date().toISOString(),
+            eventKeys: eventKeys
+        };
 
-      const payload = {
-        timestamp: new Date().toISOString(),
-        eventKeys: eventKeys
-      };
-
-      callback(true, { PAYLOAD: JSON.stringify(payload) });
+        // Return clean JSON string ready for HTTP
+        callback(true, { PAYLOAD: JSON.stringify(payload) });
 
     } catch (err) {
-      callback(false, "Error building payload: " + err.message);
+        callback(false, "Error building payload: " + err.message);
     }
-  }
-
-  // Export globally
-  global.buildReportingPayload = buildReportingPayload;
-})(this);
+})(event, context, callback);
